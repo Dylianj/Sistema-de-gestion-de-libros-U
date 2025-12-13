@@ -1,0 +1,16 @@
+[LOG] 2025/12/12 20:36:58 Libro agregado: Alicia en el pais
+[LOG] 2025/12/12 20:37:04 Listado consultado.
+[LOG] 2025/12/12 20:37:35 Libro agregado: Pepito lee
+[LOG] 2025/12/12 20:37:37 Listado consultado.
+[LOG] 2025/12/12 20:37:58 Libro agregado: Moby dick
+[LOG] 2025/12/12 20:38:00 Listado consultado.
+[LOG] 2025/12/12 20:38:15 Sesión finalizada.
+[LOG] 2025/12/12 20:39:14 Listado consultado.
+[LOG] 2025/12/12 20:39:51 Libro actualizado: Pepito lee -> Pepito escribe
+[LOG] 2025/12/12 20:39:53 Listado consultado.
+[LOG] 2025/12/12 20:40:14 Libro eliminado: Moby dick
+[LOG] 2025/12/12 20:40:18 Listado consultado.
+[LOG] 2025/12/12 20:40:23 Sesión finalizada.
+[LOG] 2025/12/12 20:41:27 Listado consultado.
+[LOG] 2025/12/12 20:41:35 Busqueda exitosa: Pepito escribe
+[LOG] 2025/12/12 20:41:43 Sesión finalizada.

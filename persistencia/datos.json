@@ -1,0 +1,14 @@
+[
+  {
+    "titulo": "Alicia en el pais",
+    "autor": "Dylan Alcivar",
+    "categoria": "Terror",
+    "anio": 1999
+  },
+  {
+    "titulo": "Pepito escribe",
+    "autor": "Llamuca Ihair",
+    "categoria": "Empresarial",
+    "anio": 2015
+  }
+]

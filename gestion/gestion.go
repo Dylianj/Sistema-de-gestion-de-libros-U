@@ -1,134 +1,98 @@
+// Dylan Alcivar, Ihair Llamuca y Mateo Vivas
 package gestion
 
 import (
-	"bufio"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"os"
 	"sistema-libros/models"
-	"strconv"
 	"strings"
 )
 
-var Libros []models.Libro
-var nada = "a"
+// gestion.go implementa la interfaz GestorInventario.
+// encapsulado: 'libros' es privado, es decir, no se puede modificar directamente
+type Sistema struct {
+	libros  []models.Libro
+	archivo string
+}
 
-func CargarLibros() {
-	archivo, err := os.ReadFile("datos.json")
+// NuevoSistema es el constructor para inicializar el sistema encapsulado.
+func NuevoSistema(archivo string) *Sistema {
+	return &Sistema{
+		libros:  []models.Libro{},
+		archivo: archivo,
+	}
+}
+
+// Cargar archivo json
+// manejo de errores explicito
+func (s *Sistema) Cargar() error {
+	data, err := os.ReadFile(s.archivo)
 	if err != nil {
-		fmt.Println("No se encontró el archivo, se creará uno nuevo.")
-		Libros = []models.Libro{}
-		return
+		if os.IsNotExist(err) {
+			s.libros = []models.Libro{}
+			return nil
+		}
+		return err //retornamos para que lo maneje el main
 	}
-	json.Unmarshal(archivo, &Libros)
+	return json.Unmarshal(data, &s.libros)
 }
 
-func GuardarLibros() {
-	datos, err := json.MarshalIndent(Libros, "", "  ")
+// escribe en el archivo json
+func (s *Sistema) Guardar() error {
+	data, err := json.MarshalIndent(s.libros, "", "  ")
 	if err != nil {
-		fmt.Println("Error al guardar:", err)
-		return
+		return err
 	}
-	os.WriteFile("datos.json", datos, 0644)
+	return os.WriteFile(s.archivo, data, 0644)
 }
 
-func AgregarLibro() {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Scanln(&nada)
-	fmt.Print("Ingrese el título: ")
-	titulo, _ := reader.ReadString('\n')
-	titulo = strings.TrimSpace(titulo)
-
-	fmt.Print("Ingrese el autor: ")
-	autor, _ := reader.ReadString('\n')
-	autor = strings.TrimSpace(autor)
-
-	fmt.Print("Ingrese la categoría: ")
-	categoria, _ := reader.ReadString('\n')
-	categoria = strings.TrimSpace(categoria)
-
-	fmt.Print("Ingrese el año de publicación: ")
-	anioStr, _ := reader.ReadString('\n')
-	anioStr = strings.TrimSpace(anioStr)
-	anio, _ := strconv.Atoi(anioStr)
-
-	libro := models.Libro{Titulo: titulo, Autor: autor, Categoria: categoria, Anio: anio}
-	Libros = append(Libros, libro)
-	fmt.Println("Libro agregado exitosamente.")
+// agrega y valida si se puede añadir un libro
+func (s *Sistema) Agregar(l models.Libro) error {
+	if l.Titulo == "" || l.Autor == "" {
+		return errors.New("el título y el autor son obligatorios")
+	}
+	s.libros = append(s.libros, l)
+	return nil
 }
 
-func ListarLibros() {
-	if len(Libros) == 0 {
-		fmt.Println("No hay libros registrados.")
-		return
-	}
-
-	fmt.Println("\nLista de libros:")
-	for i, l := range Libros {
-		fmt.Printf("%d. %s (%d) - %s [%s]\n", i+1, l.Titulo, l.Anio, l.Autor, l.Categoria)
-	}
+// devuelve una copia de los libros para seguir encapsulamiento
+func (s *Sistema) Listar() []models.Libro {
+	return s.libros
 }
 
-func BuscarLibro() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Scanln(&nada)
-	fmt.Print("Ingrese el título del libro a buscar: ")
-	titulo, _ := reader.ReadString('\n')
-	titulo = strings.TrimSpace(titulo)
-
-	for _, l := range Libros {
+// encuentra un libro por su titulo, regresa error si no existe
+func (s *Sistema) Buscar(titulo string) (models.Libro, error) {
+	for _, l := range s.libros {
 		if strings.EqualFold(l.Titulo, titulo) {
-			fmt.Printf("Encontrado: %s (%d) - %s [%s]\n", l.Titulo, l.Anio, l.Autor, l.Categoria)
-			return
+			return l, nil
 		}
 	}
-	fmt.Println("Libro no encontrado.")
+	// regresa un error personalizado
+	return models.Libro{}, errors.New("libro no encontrado")
 }
 
-func ActualizarLibro() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Scanln(&nada)
-	fmt.Print("Ingrese el título del libro a actualizar: ")
-	titulo, _ := reader.ReadString('\n')
-	titulo = strings.TrimSpace(titulo)
-
-	for i, l := range Libros {
-		if strings.EqualFold(l.Titulo, titulo) {
-			fmt.Print("Nuevo autor: ")
-			autor, _ := reader.ReadString('\n')
-			Libros[i].Autor = strings.TrimSpace(autor)
-
-			fmt.Print("Nueva categoría: ")
-			cat, _ := reader.ReadString('\n')
-			Libros[i].Categoria = strings.TrimSpace(cat)
-
-			fmt.Print("Nuevo año: ")
-			anioStr, _ := reader.ReadString('\n')
-			anioStr = strings.TrimSpace(anioStr)
-			anio, _ := strconv.Atoi(anioStr)
-			Libros[i].Anio = anio
-
-			fmt.Println("Libro actualizado correctamente.")
-			return
+// busca un libro por su titulo y cambia sus datos.
+func (s *Sistema) Actualizar(tituloOriginal string, nuevoLibro models.Libro) error {
+	for i, l := range s.libros {
+		if strings.EqualFold(l.Titulo, tituloOriginal) {
+			// Encontramos el libro
+			s.libros[i] = nuevoLibro
+			return nil
 		}
 	}
-	fmt.Println("Libro no encontrado.")
+	return errors.New("libro no encontrado para actualizar")
 }
 
-func EliminarLibro() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Scanln(&nada)
-	fmt.Print("Ingrese el título del libro a eliminar: ")
-	titulo, _ := reader.ReadString('\n')
-	titulo = strings.TrimSpace(titulo)
-
-	for i, l := range Libros {
+// busca un libro y lo borra de la lista
+func (s *Sistema) Eliminar(titulo string) error {
+	for i, l := range s.libros {
 		if strings.EqualFold(l.Titulo, titulo) {
-			Libros = append(Libros[:i], Libros[i+1:]...)
-			fmt.Println("Libro eliminado correctamente.")
-			return
+			// borrado de un slice en Go
+			// se une la parte anterior al indice [:i] con la parte posterior [i+1:]
+			s.libros = append(s.libros[:i], s.libros[i+1:]...)
+			return nil
 		}
 	}
-	fmt.Println("Libro no encontrado.")
+	return errors.New("libro no encontrado para eliminar")
 }
